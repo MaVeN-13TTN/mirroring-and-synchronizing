@@ -1,0 +1,78 @@
+# Bitbucket Pipelines configuration for mirroring to GitHub
+# This pipeline automatically syncs changes from Bitbucket to GitHub
+
+pipelines:
+  # Run on all branches
+  default:
+    - step:
+        name: Mirror to GitHub
+        image: alpine/git:latest
+        # Disable default clone since we'll do a mirror clone
+        clone:
+          enabled: false
+        script:
+          # Set Git configuration
+          - git config --global user.name "Bitbucket Pipeline"
+          - git config --global user.email "noreply@bitbucket.org"
+
+          # Clone the Bitbucket repository with mirror option
+          # This preserves all branches, tags, and history
+          - echo "Cloning Bitbucket repository..."
+          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - cd repo
+
+          # Push to GitHub with mirror option
+          # This ensures GitHub repository is an exact copy of Bitbucket
+          - echo "Pushing to GitHub repository..."
+          - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git
+
+          # Clean up
+          - echo "Synchronization completed successfully!"
+
+  # Also run on schedule (daily at midnight)
+  schedules:
+    - cron: '0 0 * * *'
+      branches:
+        include:
+          - main  # or your default branch
+      name: Daily Sync
+      deployment: production
+      step:
+        name: Scheduled Mirror to GitHub
+        image: alpine/git:latest
+        clone:
+          enabled: false
+        script:
+          # Same script as above
+          - git config --global user.name "Bitbucket Pipeline"
+          - git config --global user.email "noreply@bitbucket.org"
+          - echo "Performing scheduled sync to GitHub..."
+          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - cd repo
+          - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git
+          - echo "Scheduled synchronization completed successfully!"
+
+# REQUIRED REPOSITORY VARIABLES:
+# You must set the following repository variables in Bitbucket:
+# (Go to Repository settings > Pipelines > Repository variables)
+#
+# - BITBUCKET_TOKEN:
+#   Your Bitbucket access token with repository read permission
+#   Create at: Bitbucket > Personal settings > App passwords
+#   Required permissions: Repository (read)
+#   Should be marked as "Secured"
+#
+# - GITHUB_TOKEN:
+#   Your GitHub personal access token with repository write permission
+#   Create at: GitHub > Settings > Developer settings > Personal access tokens
+#   Required permissions: repo (Full control of private repositories)
+#   Should be marked as "Secured"
+#
+# - GITHUB_REPO_OWNER:
+#   Your GitHub username or organization name
+#
+# - GITHUB_REPO_NAME:
+#   Your GitHub repository name
+#
+# Note: Bitbucket automatically provides BITBUCKET_REPO_OWNER and BITBUCKET_REPO_SLUG
+# variables, so you don't need to set these manually.
