@@ -182,9 +182,13 @@ echo
 # Step 5: Create bitbucket-pipelines.yml for ongoing synchronization
 echo "Step 5: Setting up ongoing synchronization from Bitbucket to GitHub"
 echo "----------------------------------------------------------------"
-echo "Creating bitbucket-pipelines.yml file..."
 
-cat > bitbucket-pipelines.yml << EOF
+# Define the project directory path
+project_dir="/home/ndungu-kinyanjui/Desktop/Solavise-DevOps/mirroring-and-synchronizing"
+echo "Creating bitbucket-pipelines.yml file in the project directory..."
+
+# Create the file in the project directory
+cat > "$project_dir/bitbucket-pipelines.yml" << EOF
 pipelines:
   default:
     - step:
@@ -198,7 +202,7 @@ pipelines:
           - git push --mirror https://x-access-token:\${GITHUB_TOKEN}@github.com/$gh_username/$gh_repo.git
 EOF
 
-echo "bitbucket-pipelines.yml created successfully!"
+echo "bitbucket-pipelines.yml created successfully in $project_dir!"
 echo
 
 # Step 6: Instructions for setting up repository variables
