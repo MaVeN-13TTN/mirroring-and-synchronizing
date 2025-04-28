@@ -16,7 +16,7 @@ This guide provides solutions to common issues you might encounter when setting 
 
 **Solutions:**
 
-1. Regenerate your Bitbucket access token and update the `BITBUCKET_TOKEN` repository variable
+1. Regenerate your Bitbucket App Password and update the `BITBUCKET_APP_PASSWORD` repository variable
 2. Regenerate your GitHub personal access token and update the `GITHUB_TOKEN` repository variable
 3. Double-check the repository URLs in your `bitbucket-pipelines.yml` file
 

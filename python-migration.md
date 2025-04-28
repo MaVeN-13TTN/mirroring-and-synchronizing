@@ -23,21 +23,21 @@ The Python migration script offers a programmatic alternative to the interactive
 ```bash
 python migrate.py --bb-user BITBUCKET_USERNAME --bb-repo BITBUCKET_REPO \
                  --gh-user GITHUB_USERNAME --gh-repo GITHUB_REPO \
-                 --bb-token BITBUCKET_TOKEN --gh-token GITHUB_TOKEN \
+                 --bb-token BITBUCKET_APP_PASSWORD --gh-token GITHUB_TOKEN \
                  [--private]
 ```
 
 ### Parameters
 
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `--bb-user` | Bitbucket username or workspace | Yes |
-| `--bb-repo` | Bitbucket repository name | Yes |
-| `--gh-user` | GitHub username | Yes |
-| `--gh-repo` | GitHub repository name | Yes |
-| `--bb-token` | Bitbucket access token | Yes |
-| `--gh-token` | GitHub personal access token | Yes |
-| `--private` | Create a private GitHub repository (default: public) | No |
+| Parameter    | Description                                          | Required |
+| ------------ | ---------------------------------------------------- | -------- |
+| `--bb-user`  | Bitbucket username or workspace                      | Yes      |
+| `--bb-repo`  | Bitbucket repository name                            | Yes      |
+| `--gh-user`  | GitHub username                                      | Yes      |
+| `--gh-repo`  | GitHub repository name                               | Yes      |
+| `--bb-token` | Bitbucket access token                               | Yes      |
+| `--gh-token` | GitHub personal access token                         | Yes      |
+| `--private`  | Create a private GitHub repository (default: public) | No       |
 
 ## Example
 
@@ -50,9 +50,11 @@ python migrate.py --bb-user mybitbucketuser --bb-repo myrepo \
 ## What the Script Does
 
 1. **Checks if the GitHub repository exists**
+
    - If it doesn't exist, creates it with the specified visibility (private/public)
 
 2. **Migrates the repository**
+
    - Clones the Bitbucket repository with the `--mirror` option
    - Pushes to the GitHub repository with the `--mirror` option
    - This preserves all branches, tags, and commit history
@@ -64,6 +66,7 @@ python migrate.py --bb-user mybitbucketuser --bb-repo myrepo \
 ## Next Steps After Running the Script
 
 1. Add the generated `bitbucket-pipelines.yml` file to your Bitbucket repository:
+
    ```bash
    cd /path/to/your/bitbucket/repo
    cp /path/to/generated/bitbucket-pipelines.yml .
@@ -73,8 +76,9 @@ python migrate.py --bb-user mybitbucketuser --bb-repo myrepo \
    ```
 
 2. Set up repository variables in Bitbucket:
+
    - Go to Repository settings > Pipelines > Repository variables
-   - Add `BITBUCKET_TOKEN` with your Bitbucket access token (mark as "Secured")
+   - Add `BITBUCKET_APP_PASSWORD` with your Bitbucket App Password (mark as "Secured")
    - Add `GITHUB_TOKEN` with your GitHub personal access token (mark as "Secured")
 
 3. Enable Bitbucket Pipelines:

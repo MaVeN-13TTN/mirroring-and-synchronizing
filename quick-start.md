@@ -42,7 +42,7 @@ pip install requests python-dotenv
 cat > .env << EOF
 BITBUCKET_USERNAME=your_bitbucket_username
 BITBUCKET_REPO=your_bitbucket_repo
-BITBUCKET_TOKEN=your_bitbucket_token
+BITBUCKET_APP_PASSWORD=your_bitbucket_app_password
 GITHUB_USERNAME=your_github_username
 GITHUB_REPO=your_github_repo
 GITHUB_TOKEN=your_github_token
@@ -87,7 +87,7 @@ git push
 2. **Add Required Repository Variables**:
    - Go to Repository settings > Pipelines > Repository variables
    - Add the following variables:
-     - `BITBUCKET_TOKEN`: Your Bitbucket access token (mark as "Secured")
+     - `BITBUCKET_APP_PASSWORD`: Your Bitbucket App Password (mark as "Secured")
      - `GITHUB_TOKEN`: Your GitHub personal access token (mark as "Secured")
      - `GITHUB_REPO_OWNER`: Your GitHub username or organization name
      - `GITHUB_REPO_NAME`: Your GitHub repository name

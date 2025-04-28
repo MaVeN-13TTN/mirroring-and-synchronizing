@@ -45,7 +45,7 @@ If you prefer to perform the migration manually, follow these steps:
 
 #### Step 2: Generate Access Tokens
 
-##### Bitbucket Access Token
+##### Bitbucket App Password
 
 1. Log in to Bitbucket
 2. Click on your profile picture in the bottom-left corner
@@ -55,7 +55,7 @@ If you prefer to perform the migration manually, follow these steps:
 6. Give it a name (e.g., "GitHub Migration")
 7. Select the "Repository" read permission
 8. Click "Create"
-9. Copy and save the token securely
+9. Copy and save the App Password securely
 
 ##### GitHub Personal Access Token
 
@@ -80,7 +80,7 @@ mkdir temp_migration
 cd temp_migration
 
 # Clone the Bitbucket repository with mirror option
-git clone --mirror https://x-token-auth:YOUR_BITBUCKET_TOKEN@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git
+git clone --mirror https://x-token-auth:YOUR_BITBUCKET_APP_PASSWORD@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git
 
 # Navigate into the cloned repository
 cd YOUR_REPO_NAME.git
@@ -95,7 +95,7 @@ rm -rf temp_migration
 
 Replace:
 
-- `YOUR_BITBUCKET_TOKEN` with your Bitbucket access token
+- `YOUR_BITBUCKET_APP_PASSWORD` with your Bitbucket App Password
 - `YOUR_BITBUCKET_USERNAME` with your Bitbucket username
 - `YOUR_REPO_NAME` with your repository name
 - `YOUR_GITHUB_TOKEN` with your GitHub personal access token
@@ -114,9 +114,9 @@ After the initial migration, you'll want to set up automatic synchronization to 
 ### Step 2: Add Repository Variables in Bitbucket
 
 1. Go to **Repository settings** > **Pipelines** > **Repository variables**
-2. Add a variable named `BITBUCKET_TOKEN` with the value of your Bitbucket access token
+2. Add a variable named `BITBUCKET_APP_PASSWORD` with the value of your Bitbucket App Password
 3. Add a variable named `GITHUB_TOKEN` with the value of your GitHub personal access token
-4. Make sure to check "Secured" for both variables to protect your tokens
+4. Make sure to check "Secured" for both variables to protect your credentials
 
 ### Step 3: Create Bitbucket Pipelines Configuration
 
@@ -131,7 +131,7 @@ pipelines:
         clone:
           enabled: false
         script:
-          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
+          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
           - cd repo
           - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
 ```
@@ -196,7 +196,7 @@ pipelines:
         name: Mirror to GitHub
         image: alpine/git:latest
         script:
-          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
+          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
           - cd repo
           - git remote add github git@github.com:YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
           - git push --mirror github
@@ -206,8 +206,8 @@ pipelines:
 
 ### Pipeline Fails with Authentication Error
 
-- Verify that your tokens are correct and have not expired
-- Check that the tokens have the necessary permissions
+- Verify that your App Password and token are correct and have not expired
+- Check that your credentials have the necessary permissions
 - Ensure the repository paths in the pipeline configuration are correct
 
 ### Pipeline Succeeds but Repository Is Not Updated
@@ -223,8 +223,8 @@ pipelines:
 
 ## Security Considerations
 
-- Use repository-specific access tokens with minimal permissions
-- Store tokens securely as repository variables
-- Regularly rotate your access tokens
-- Consider using SSH keys instead of tokens for enhanced security
-- Remove tokens and keys when they are no longer needed
+- Use repository-specific App Passwords and tokens with minimal permissions
+- Store credentials securely as repository variables
+- Regularly rotate your App Passwords and tokens
+- Consider using SSH keys instead of App Passwords/tokens for enhanced security
+- Remove credentials and keys when they are no longer needed

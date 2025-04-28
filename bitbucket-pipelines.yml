@@ -18,7 +18,7 @@ pipelines:
           # Clone the Bitbucket repository with mirror option
           # This preserves all branches, tags, and history
           - echo "Cloning Bitbucket repository..."
-          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
           - cd repo
 
           # Push to GitHub with mirror option
@@ -47,7 +47,7 @@ pipelines:
           - git config --global user.name "Bitbucket Pipeline"
           - git config --global user.email "noreply@bitbucket.org"
           - echo "Performing scheduled sync to GitHub..."
-          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
           - cd repo
           - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git
           - echo "Scheduled synchronization completed successfully!"
@@ -56,8 +56,8 @@ pipelines:
 # You must set the following repository variables in Bitbucket:
 # (Go to Repository settings > Pipelines > Repository variables)
 #
-# - BITBUCKET_TOKEN:
-#   Your Bitbucket access token with repository read permission
+# - BITBUCKET_APP_PASSWORD:
+#   Your Bitbucket App Password with repository read permission
 #   Create at: Bitbucket > Personal settings > App passwords
 #   Required permissions: Repository (read)
 #   Should be marked as "Secured"
@@ -76,3 +76,6 @@ pipelines:
 #
 # Note: Bitbucket automatically provides BITBUCKET_REPO_OWNER and BITBUCKET_REPO_SLUG
 # variables, so you don't need to set these manually.
+#
+# IMPORTANT: The variable name BITBUCKET_APP_PASSWORD is used to avoid confusion with
+# Bitbucket's built-in BITBUCKET_TOKEN variable, which is different.

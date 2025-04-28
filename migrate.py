@@ -60,7 +60,7 @@ def create_env_file(
 # Created on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 # Bitbucket credentials
-BITBUCKET_TOKEN={bb_token}
+BITBUCKET_APP_PASSWORD={bb_token}
 BITBUCKET_USERNAME={bb_user}
 BITBUCKET_REPO={bb_repo}
 
@@ -99,7 +99,7 @@ def parse_args():
     env_bb_repo = os.environ.get("BITBUCKET_REPO")
     env_gh_user = os.environ.get("GITHUB_USERNAME")
     env_gh_repo = os.environ.get("GITHUB_REPO")
-    env_bb_token = os.environ.get("BITBUCKET_TOKEN")
+    env_bb_token = os.environ.get("BITBUCKET_APP_PASSWORD")
     env_gh_token = os.environ.get("GITHUB_TOKEN")
     env_private = os.environ.get("GITHUB_PRIVATE", "false").lower() in (
         "true",
@@ -117,7 +117,7 @@ def parse_args():
     parser.add_argument("--gh-user", default=env_gh_user, help="GitHub username")
     parser.add_argument("--gh-repo", default=env_gh_repo, help="GitHub repository name")
     parser.add_argument(
-        "--bb-token", default=env_bb_token, help="Bitbucket access token"
+        "--bb-token", default=env_bb_token, help="Bitbucket App Password"
     )
     parser.add_argument(
         "--gh-token", default=env_gh_token, help="GitHub personal access token"
@@ -148,7 +148,7 @@ def parse_args():
         args.gh_repo = input("Enter your GitHub repository name: ")
 
     if not args.bb_token:
-        args.bb_token = getpass.getpass("Enter your Bitbucket access token: ")
+        args.bb_token = getpass.getpass("Enter your Bitbucket App Password: ")
 
     if not args.gh_token:
         args.gh_token = getpass.getpass("Enter your GitHub personal access token: ")
@@ -228,7 +228,7 @@ pipelines:
           # Clone the Bitbucket repository with mirror option
           # This preserves all branches, tags, and history
           - echo "Cloning Bitbucket repository..."
-          - git clone --mirror https://x-token-auth:${{BITBUCKET_TOKEN}}@bitbucket.org/{bb_user}/{bb_repo}.git repo
+          - git clone --mirror https://x-token-auth:${{BITBUCKET_APP_PASSWORD}}@bitbucket.org/{bb_user}/{bb_repo}.git repo
           - cd repo
 
           # Push to GitHub with mirror option
@@ -257,13 +257,13 @@ pipelines:
           - git config --global user.name "Bitbucket Pipeline"
           - git config --global user.email "noreply@bitbucket.org"
           - echo "Performing scheduled sync to GitHub..."
-          - git clone --mirror https://x-token-auth:${{BITBUCKET_TOKEN}}@bitbucket.org/{bb_user}/{bb_repo}.git repo
+          - git clone --mirror https://x-token-auth:${{BITBUCKET_APP_PASSWORD}}@bitbucket.org/{bb_user}/{bb_repo}.git repo
           - cd repo
           - git push --mirror https://x-access-token:${{GITHUB_TOKEN}}@github.com/{gh_user}/{gh_repo}.git
           - echo "Scheduled synchronization completed successfully!"
 
 # Note: You need to set the following repository variables in Bitbucket:
-# - BITBUCKET_TOKEN: Your Bitbucket access token with repository read permission
+# - BITBUCKET_APP_PASSWORD: Your Bitbucket App Password with repository read permission
 # - GITHUB_TOKEN: Your GitHub personal access token with repository write permission
 """
 
@@ -273,7 +273,7 @@ pipelines:
     print("Bitbucket Pipelines configuration created: bitbucket-pipelines.yml")
     print("\nIMPORTANT: You need to add this file to your Bitbucket repository")
     print("and set up the following repository variables in Bitbucket:")
-    print("- BITBUCKET_TOKEN: Your Bitbucket access token")
+    print("- BITBUCKET_APP_PASSWORD: Your Bitbucket App Password")
     print("- GITHUB_TOKEN: Your GitHub personal access token")
 
 

@@ -29,7 +29,7 @@ create_env_file() {
 # Created on $(date)
 
 # Bitbucket credentials
-BITBUCKET_TOKEN=$bb_token
+BITBUCKET_APP_PASSWORD=$bb_token
 BITBUCKET_USERNAME=$bb_username
 BITBUCKET_REPO=$bb_repo
 
@@ -51,7 +51,7 @@ if load_env; then
     # Use values from .env if available
     bb_username=${BITBUCKET_USERNAME:-$bb_username}
     bb_repo=${BITBUCKET_REPO:-$bb_repo}
-    bb_token=${BITBUCKET_TOKEN:-$bb_token}
+    bb_token=${BITBUCKET_APP_PASSWORD:-$bb_token}
     gh_username=${GITHUB_USERNAME:-$gh_username}
     gh_repo=${GITHUB_REPO:-$gh_repo}
     gh_token=${GITHUB_TOKEN:-$gh_token}
@@ -93,10 +93,10 @@ if [ -z "$gh_repo" ]; then
     read -p "Enter your GitHub repository name (will be created if it doesn't exist): " gh_repo
 fi
 
-# Step 1: Generate Bitbucket access token if not already set
+# Step 1: Generate Bitbucket App Password if not already set
 if [ -z "$bb_token" ]; then
     echo
-    echo "Step 1: Generate a Bitbucket access token"
+    echo "Step 1: Generate a Bitbucket App Password"
     echo "----------------------------------------"
     echo "1. Go to Bitbucket and log in to your account"
     echo "2. Click on your profile picture in the bottom left and select 'Personal settings'"
@@ -105,8 +105,8 @@ if [ -z "$bb_token" ]; then
     echo "5. Give it a name (e.g., 'Migration to GitHub')"
     echo "6. Select the 'Repository' read permission"
     echo "7. Click 'Create'"
-    echo "8. Copy the generated token"
-    read -sp "Enter your Bitbucket access token: " bb_token
+    echo "8. Copy the generated App Password"
+    read -sp "Enter your Bitbucket App Password: " bb_token
     echo
 fi
 
@@ -193,7 +193,7 @@ pipelines:
         clone:
           enabled: false
         script:
-          - git clone --mirror https://x-token-auth:\${BITBUCKET_TOKEN}@bitbucket.org/$bb_username/$bb_repo.git repo
+          - git clone --mirror https://x-token-auth:\${BITBUCKET_APP_PASSWORD}@bitbucket.org/$bb_username/$bb_repo.git repo
           - cd repo
           - git push --mirror https://x-access-token:\${GITHUB_TOKEN}@github.com/$gh_username/$gh_repo.git
 EOF
@@ -206,7 +206,7 @@ echo "Step 6: Set up repository variables in Bitbucket"
 echo "---------------------------------------------"
 echo "1. Go to your Bitbucket repository"
 echo "2. Navigate to Repository settings > Pipelines > Repository variables"
-echo "3. Add a variable named BITBUCKET_TOKEN with your Bitbucket access token"
+echo "3. Add a variable named BITBUCKET_APP_PASSWORD with your Bitbucket App Password"
 echo "4. Add a variable named GITHUB_TOKEN with your GitHub personal access token"
 echo "5. Make sure to check 'Secured' for both variables"
 echo "6. Enable Pipelines in Repository settings > Pipelines > Settings"

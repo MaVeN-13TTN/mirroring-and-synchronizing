@@ -46,7 +46,7 @@ For users who prefer Python or need to automate the process, we provide a Python
 ```bash
 python migrate.py --bb-user BITBUCKET_USERNAME --bb-repo BITBUCKET_REPO \
                  --gh-user GITHUB_USERNAME --gh-repo GITHUB_REPO \
-                 --bb-token BITBUCKET_TOKEN --gh-token GITHUB_TOKEN \
+                 --bb-token BITBUCKET_APP_PASSWORD --gh-token GITHUB_TOKEN \
                  [--private]
 ```
 
@@ -90,7 +90,7 @@ To set up the Bitbucket Pipeline for synchronization, you'll need these credenti
    - Purpose: Allows the pipeline to read from your Bitbucket repository
    - Permissions needed: Repository read access
    - Where to create: Bitbucket > Personal settings > App passwords
-   - Variable name in pipeline: `BITBUCKET_TOKEN`
+   - Variable name in pipeline: `BITBUCKET_APP_PASSWORD`
 
 2. **GitHub Personal Access Token**:
 
@@ -136,7 +136,7 @@ For a complete step-by-step guide, see the [Bitbucket Pipeline Setup Guide](pipe
 
 - All authentication tokens and SSH keys should be stored securely
 - Use repository-specific deploy keys and tokens with minimal required permissions
-- Store tokens as secured repository variables in Bitbucket
+- Store App Passwords and tokens as secured repository variables in Bitbucket
 - Use the provided .env file approach for local token storage with secure permissions
 - Never commit .env files containing tokens to version control
 - Regularly rotate credentials for enhanced security

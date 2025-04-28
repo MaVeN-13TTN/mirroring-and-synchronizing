@@ -16,7 +16,7 @@ Before setting up the pipeline, ensure you have:
 
 ## Step 1: Generate Required Credentials
 
-### Bitbucket Access Token
+### Bitbucket App Password
 
 1. Log in to Bitbucket
 2. Click on your profile picture in the bottom-left corner
@@ -26,7 +26,7 @@ Before setting up the pipeline, ensure you have:
 6. Give it a name (e.g., "GitHub Migration")
 7. Select the "Repository" read permission
 8. Click "Create"
-9. **Important**: Copy and save the token immediately as it won't be shown again
+9. **Important**: Copy and save the App Password immediately as it won't be shown again
 
 ### GitHub Personal Access Token
 
@@ -54,12 +54,12 @@ These variables store your credentials securely and provide information about yo
 1. Go to **Repository settings** > **Pipelines** > **Repository variables**
 2. Add the following variables:
 
-   | Variable Name | Value | Secured |
-   |---------------|-------|---------|
-   | BITBUCKET_TOKEN | Your Bitbucket access token | Yes |
-   | GITHUB_TOKEN | Your GitHub personal access token | Yes |
-   | GITHUB_REPO_OWNER | Your GitHub username or organization name | No |
-   | GITHUB_REPO_NAME | Your GitHub repository name | No |
+   | Variable Name          | Value                                     | Secured |
+   | ---------------------- | ----------------------------------------- | ------- |
+   | BITBUCKET_APP_PASSWORD | Your Bitbucket App Password               | Yes     |
+   | GITHUB_TOKEN           | Your GitHub personal access token         | Yes     |
+   | GITHUB_REPO_OWNER      | Your GitHub username or organization name | No      |
+   | GITHUB_REPO_NAME       | Your GitHub repository name               | No      |
 
    **Note**: The "Secured" checkbox masks the value in logs for security.
 
@@ -85,27 +85,27 @@ pipelines:
           # Set Git configuration
           - git config --global user.name "Bitbucket Pipeline"
           - git config --global user.email "noreply@bitbucket.org"
-          
+
           # Clone the Bitbucket repository with mirror option
           # This preserves all branches, tags, and history
           - echo "Cloning Bitbucket repository..."
-          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
           - cd repo
-          
+
           # Push to GitHub with mirror option
           # This ensures GitHub repository is an exact copy of Bitbucket
           - echo "Pushing to GitHub repository..."
           - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git
-          
+
           # Clean up
           - echo "Synchronization completed successfully!"
-  
+
   # Also run on schedule (daily at midnight)
   schedules:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
       branches:
         include:
-          - main  # or your default branch
+          - main # or your default branch
       name: Daily Sync
       deployment: production
       step:
@@ -118,7 +118,7 @@ pipelines:
           - git config --global user.name "Bitbucket Pipeline"
           - git config --global user.email "noreply@bitbucket.org"
           - echo "Performing scheduled sync to GitHub..."
-          - git clone --mirror https://x-token-auth:${BITBUCKET_TOKEN}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
           - cd repo
           - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}.git
           - echo "Scheduled synchronization completed successfully!"
@@ -153,11 +153,12 @@ pipelines:
 The pipeline uses several environment variables:
 
 1. **Provided by Bitbucket**:
+
    - `BITBUCKET_REPO_OWNER`: Your Bitbucket username or workspace
    - `BITBUCKET_REPO_SLUG`: Your Bitbucket repository name
 
 2. **Set by You**:
-   - `BITBUCKET_TOKEN`: Your Bitbucket access token
+   - `BITBUCKET_APP_PASSWORD`: Your Bitbucket App Password
    - `GITHUB_TOKEN`: Your GitHub personal access token
    - `GITHUB_REPO_OWNER`: Your GitHub username or organization name
    - `GITHUB_REPO_NAME`: Your GitHub repository name
@@ -166,8 +167,8 @@ The pipeline uses several environment variables:
 
 ### Pipeline Fails with Authentication Error
 
-- Verify that your tokens are correct and have not expired
-- Check that the tokens have the necessary permissions
+- Verify that your App Password and token are correct and have not expired
+- Check that the credentials have the necessary permissions
 - Ensure the repository variables are set correctly
 
 ### Pipeline Succeeds but Repository Is Not Updated
@@ -183,10 +184,10 @@ The pipeline uses several environment variables:
 
 ## Security Considerations
 
-- Use repository-specific access tokens with minimal permissions
-- Store tokens securely as repository variables with the "Secured" option
-- Regularly rotate your access tokens
-- Consider using SSH keys instead of tokens for enhanced security (see the [Bitbucket to GitHub Migration Guide](bitbucket-to-github.md) for instructions)
+- Use repository-specific App Passwords and tokens with minimal permissions
+- Store credentials securely as repository variables with the "Secured" option
+- Regularly rotate your App Passwords and tokens
+- Consider using SSH keys instead of App Passwords/tokens for enhanced security (see the [Bitbucket to GitHub Migration Guide](bitbucket-to-github.md) for instructions)
 
 ## Next Steps
 
