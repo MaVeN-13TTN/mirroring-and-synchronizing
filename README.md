@@ -22,10 +22,6 @@ There are several reasons you might want to migrate from Bitbucket to GitHub whi
 
 ## Getting Started
 
-We provide two different methods to set up the migration and synchronization process:
-
-### Option 1: Interactive Bash Script (Recommended for Most Users)
-
 The easiest way to get started is to use the interactive setup script:
 
 ```bash
@@ -39,34 +35,24 @@ This bash script will guide you through the process of:
 3. Performing the initial migration
 4. Setting up ongoing synchronization
 
-### Option 2: Python Script (For Automation and Programmatic Use)
+### Advanced Options
 
-For users who prefer Python or need to automate the process, we provide a Python script:
+The script supports several command-line options:
 
 ```bash
-python migrate.py --bb-user BITBUCKET_USERNAME --bb-repo BITBUCKET_REPO \
-                 --gh-user GITHUB_USERNAME --gh-repo GITHUB_REPO \
-                 --bb-token BITBUCKET_APP_PASSWORD --gh-token GITHUB_TOKEN \
-                 [--private]
+./setup-mirroring.sh --debug --verbose
 ```
 
-The Python script:
+- `--debug`: Enables detailed debugging output (shows all commands as they execute)
+- `--verbose`: Shows additional information during execution
 
-- Can be integrated into other Python applications
-- Provides better error handling
-- Works cross-platform (Windows, macOS, Linux)
-- Is ideal for automating migrations of multiple repositories
+### Requirements
 
-Requirements:
-
-- Python 3.6+
 - Git
-- Requests library (`pip install requests`)
+- Bash shell
+- curl
 
-For detailed instructions:
-
-- Interactive Bash Script: [Bitbucket to GitHub Migration Guide](bitbucket-to-github.md)
-- Python Script: [Python Migration Guide](python-migration.md)
+For detailed instructions, see the [Bitbucket to GitHub Migration Guide](bitbucket-to-github.md)
 
 ## Manual Setup
 
@@ -85,10 +71,10 @@ Detailed instructions for manual setup are available in the [Bitbucket to GitHub
 
 To set up the Bitbucket Pipeline for synchronization, you'll need these credentials:
 
-1. **Bitbucket Access Token**:
+1. **Bitbucket App Password**:
 
    - Purpose: Allows the pipeline to read from your Bitbucket repository
-   - Permissions needed: Repository read access
+   - Permissions needed: Repository read/write access, Pipelines read/write/variables
    - Where to create: Bitbucket > Personal settings > App passwords
    - Variable name in pipeline: `BITBUCKET_APP_PASSWORD`
 
@@ -99,11 +85,10 @@ To set up the Bitbucket Pipeline for synchronization, you'll need these credenti
    - Where to create: GitHub > Settings > Developer settings > Personal access tokens
    - Variable name in pipeline: `GITHUB_TOKEN`
 
-3. **GitHub Repository Information**:
-   - Purpose: Identifies where to push the mirrored repository
-   - Variables needed:
-     - `GITHUB_REPO_OWNER`: Your GitHub username or organization name
-     - `GITHUB_REPO_NAME`: Your GitHub repository name
+3. **Personal Bitbucket Username** (for workspace repositories):
+   - Purpose: Used for authentication with Bitbucket when using workspace repositories
+   - Variable name in pipeline: `BITBUCKET_AUTH_USERNAME`
+   - Note: Only required when your repository is under a workspace/organization
 
 ### Pipeline Setup Steps
 
@@ -115,13 +100,16 @@ To set up the Bitbucket Pipeline for synchronization, you'll need these credenti
 2. **Add Repository Variables**:
 
    - Go to Repository settings > Pipelines > Repository variables
-   - Add the variables listed above
+   - Add the following variables:
+     - `BITBUCKET_APP_PASSWORD`: Your Bitbucket App Password (mark as 'Secured')
+     - `GITHUB_TOKEN`: Your GitHub personal access token (mark as 'Secured')
+     - `BITBUCKET_AUTH_USERNAME`: Your personal Bitbucket username (if using a workspace)
    - Check "Secured" for token variables to protect them in logs
 
 3. **Create Pipeline Configuration**:
-   - Create a `bitbucket-pipelines.yml` file in your repository
-   - Use the template provided in this project
-   - Commit and push to trigger the pipeline
+   - The setup script automatically creates and commits the `bitbucket-pipelines.yml` file
+   - The pipeline is configured to run on every push to your repository
+   - It also includes a scheduled daily synchronization at midnight
 
 For a complete step-by-step guide, see the [Bitbucket Pipeline Setup Guide](pipeline-setup.md) and the [Bitbucket to GitHub Migration Guide](bitbucket-to-github.md).
 
@@ -134,14 +122,44 @@ For a complete step-by-step guide, see the [Bitbucket Pipeline Setup Guide](pipe
 
 ## Security Considerations
 
-- All authentication tokens and SSH keys should be stored securely
-- Use repository-specific deploy keys and tokens with minimal required permissions
+- All authentication tokens and app passwords should be stored securely
+- Use repository-specific tokens with minimal required permissions
 - Store App Passwords and tokens as secured repository variables in Bitbucket
-- Use the provided .env file approach for local token storage with secure permissions
+- Use the provided .env file approach for local token storage with secure permissions (chmod 600)
 - Never commit .env files containing tokens to version control
+- For workspace repositories, ensure your personal account has appropriate permissions
 - Regularly rotate credentials for enhanced security
+- Consider using debug mode only when troubleshooting to avoid exposing sensitive information
 
 For detailed information on secure token handling, see the [Secure Token Handling Guide](secure-token-handling.md).
+
+## Limitations and Considerations
+
+### One-Way Synchronization
+
+- The script only supports Bitbucket to GitHub synchronization
+- Changes made directly to GitHub will be overwritten by the next sync from Bitbucket
+- This is intentional to maintain Bitbucket as the source of truth
+
+### Large Repositories
+
+- Very large repositories might exceed Bitbucket Pipelines' time or memory limits
+- For repositories larger than 1GB, consider:
+  - Using a custom runner with increased resources
+  - Breaking the initial migration into smaller parts
+  - Increasing the pipeline timeout settings
+
+### Branch Protection
+
+- If you have branch protection rules on GitHub, ensure the token has sufficient permissions
+- GitHub tokens need the "bypass branch protections" permission to push to protected branches
+- Consider temporarily disabling branch protection during initial migration
+
+### Private Dependencies
+
+- If your repository uses private dependencies, additional configuration might be needed
+- For private Git submodules, you'll need to configure access tokens for those repositories
+- For private package registries, configure appropriate credentials in the pipeline
 
 ## Troubleshooting
 

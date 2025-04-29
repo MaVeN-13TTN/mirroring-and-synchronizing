@@ -22,13 +22,32 @@ The process consists of two main parts:
 
 The easiest way to migrate your repository is to use the provided setup script:
 
-1. Run the `setup-mirroring.sh` script in this repository
+1. Run the `setup-mirroring.sh` script in this repository:
+
+   ```bash
+   ./setup-mirroring.sh
+   ```
+
+   For more detailed output, use:
+
+   ```bash
+   ./setup-mirroring.sh --verbose
+   ```
+
+   For debugging, use:
+
+   ```bash
+   ./setup-mirroring.sh --debug
+   ```
+
 2. Follow the interactive prompts to:
-   - Enter your Bitbucket and GitHub credentials
+   - Specify whether you're using a Bitbucket workspace or personal username
+   - For workspace repositories, provide your personal username for authentication
+   - Enter your Bitbucket and GitHub repository details
    - Generate necessary access tokens
    - Create the GitHub repository (if it doesn't exist)
    - Perform the initial migration
-   - Set up ongoing synchronization
+   - Set up ongoing synchronization with daily scheduled updates
 
 ### Option B: Manual Migration
 
@@ -79,14 +98,17 @@ Open a terminal and run the following commands:
 mkdir temp_migration
 cd temp_migration
 
-# Clone the Bitbucket repository with mirror option
-git clone --mirror https://x-token-auth:YOUR_BITBUCKET_APP_PASSWORD@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git
+# For personal repositories:
+git clone --mirror https://YOUR_BITBUCKET_USERNAME:YOUR_BITBUCKET_APP_PASSWORD@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git
+
+# OR for workspace repositories:
+git clone --mirror https://YOUR_PERSONAL_USERNAME:YOUR_BITBUCKET_APP_PASSWORD@bitbucket.org/YOUR_WORKSPACE_NAME/YOUR_REPO_NAME.git
 
 # Navigate into the cloned repository
 cd YOUR_REPO_NAME.git
 
 # Push to GitHub with mirror option
-git push --mirror https://x-access-token:YOUR_GITHUB_TOKEN@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+git push --mirror https://YOUR_GITHUB_USERNAME:YOUR_GITHUB_TOKEN@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
 
 # Clean up
 cd ../..
@@ -96,7 +118,9 @@ rm -rf temp_migration
 Replace:
 
 - `YOUR_BITBUCKET_APP_PASSWORD` with your Bitbucket App Password
-- `YOUR_BITBUCKET_USERNAME` with your Bitbucket username
+- `YOUR_BITBUCKET_USERNAME` with your Bitbucket username (for personal repositories)
+- `YOUR_PERSONAL_USERNAME` with your personal Bitbucket username (for authentication with workspace repositories)
+- `YOUR_WORKSPACE_NAME` with your Bitbucket workspace name (for workspace repositories)
 - `YOUR_REPO_NAME` with your repository name
 - `YOUR_GITHUB_TOKEN` with your GitHub personal access token
 - `YOUR_GITHUB_USERNAME` with your GitHub username
@@ -116,11 +140,15 @@ After the initial migration, you'll want to set up automatic synchronization to 
 1. Go to **Repository settings** > **Pipelines** > **Repository variables**
 2. Add a variable named `BITBUCKET_APP_PASSWORD` with the value of your Bitbucket App Password
 3. Add a variable named `GITHUB_TOKEN` with the value of your GitHub personal access token
-4. Make sure to check "Secured" for both variables to protect your credentials
+4. If you're using a workspace repository, add a variable named `BITBUCKET_AUTH_USERNAME` with your personal Bitbucket username
+5. Make sure to check "Secured" for token variables to protect your credentials
+6. Optionally, add `DEBUG=true` for detailed logging in the pipeline
 
 ### Step 3: Create Bitbucket Pipelines Configuration
 
 Create a file named `bitbucket-pipelines.yml` in the root of your Bitbucket repository with the following content:
+
+For personal repositories:
 
 ```yaml
 pipelines:
@@ -131,16 +159,102 @@ pipelines:
         clone:
           enabled: false
         script:
-          - git clone --mirror https://x-token-auth:${BITBUCKET_APP_PASSWORD}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
+          # Set Git configuration
+          - git config --global user.name "Bitbucket Pipeline"
+          - git config --global user.email "noreply@bitbucket.org"
+
+          # Clone the Bitbucket repository with mirror option
+          - echo "Cloning Bitbucket repository..."
+          - git clone --mirror https://YOUR_BITBUCKET_USERNAME:${BITBUCKET_APP_PASSWORD}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
           - cd repo
-          - git push --mirror https://x-access-token:${GITHUB_TOKEN}@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+
+          # Push to GitHub with mirror option
+          - echo "Pushing to GitHub repository..."
+          - git push --mirror https://YOUR_GITHUB_USERNAME:${GITHUB_TOKEN}@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+
+          # Clean up
+          - echo "Synchronization completed successfully!"
+
+  # Also run on schedule (daily at midnight)
+  schedules:
+    - cron: "0 0 * * *"
+      branches:
+        include:
+          - main # or your default branch
+      name: Daily Sync
+      step:
+        name: Scheduled Mirror to GitHub
+        image: alpine/git:latest
+        clone:
+          enabled: false
+        script:
+          # Same script as above
+          - git config --global user.name "Bitbucket Pipeline"
+          - git config --global user.email "noreply@bitbucket.org"
+          - echo "Performing scheduled sync to GitHub..."
+          - git clone --mirror https://YOUR_BITBUCKET_USERNAME:${BITBUCKET_APP_PASSWORD}@bitbucket.org/YOUR_BITBUCKET_USERNAME/YOUR_REPO_NAME.git repo
+          - cd repo
+          - git push --mirror https://YOUR_GITHUB_USERNAME:${GITHUB_TOKEN}@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+          - echo "Scheduled synchronization completed successfully!"
+```
+
+For workspace repositories:
+
+```yaml
+pipelines:
+  default:
+    - step:
+        name: Mirror to GitHub
+        image: alpine/git:latest
+        clone:
+          enabled: false
+        script:
+          # Set Git configuration
+          - git config --global user.name "Bitbucket Pipeline"
+          - git config --global user.email "noreply@bitbucket.org"
+
+          # Clone the Bitbucket repository with mirror option
+          - echo "Cloning Bitbucket repository..."
+          - git clone --mirror https://${BITBUCKET_AUTH_USERNAME}:${BITBUCKET_APP_PASSWORD}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - cd repo
+
+          # Push to GitHub with mirror option
+          - echo "Pushing to GitHub repository..."
+          - git push --mirror https://YOUR_GITHUB_USERNAME:${GITHUB_TOKEN}@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+
+          # Clean up
+          - echo "Synchronization completed successfully!"
+
+  # Also run on schedule (daily at midnight)
+  schedules:
+    - cron: "0 0 * * *"
+      branches:
+        include:
+          - main # or your default branch
+      name: Daily Sync
+      step:
+        name: Scheduled Mirror to GitHub
+        image: alpine/git:latest
+        clone:
+          enabled: false
+        script:
+          # Same script as above
+          - git config --global user.name "Bitbucket Pipeline"
+          - git config --global user.email "noreply@bitbucket.org"
+          - echo "Performing scheduled sync to GitHub..."
+          - git clone --mirror https://${BITBUCKET_AUTH_USERNAME}:${BITBUCKET_APP_PASSWORD}@bitbucket.org/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}.git repo
+          - cd repo
+          - git push --mirror https://YOUR_GITHUB_USERNAME:${GITHUB_TOKEN}@github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git
+          - echo "Scheduled synchronization completed successfully!"
 ```
 
 Replace:
 
-- `YOUR_BITBUCKET_USERNAME` with your Bitbucket username
+- `YOUR_BITBUCKET_USERNAME` with your Bitbucket username (for personal repositories)
 - `YOUR_REPO_NAME` with your repository name
 - `YOUR_GITHUB_USERNAME` with your GitHub username
+
+Note: For workspace repositories, Bitbucket automatically provides `BITBUCKET_REPO_OWNER` and `BITBUCKET_REPO_SLUG` variables.
 
 ### Step 4: Commit and Push the Pipeline Configuration
 
@@ -208,7 +322,9 @@ pipelines:
 
 - Verify that your App Password and token are correct and have not expired
 - Check that your credentials have the necessary permissions
+- For workspace repositories, ensure you've added the `BITBUCKET_AUTH_USERNAME` variable with your personal username
 - Ensure the repository paths in the pipeline configuration are correct
+- Check that your app password has sufficient permissions (Repository read/write, Pipelines read/write/variables)
 
 ### Pipeline Succeeds but Repository Is Not Updated
 
@@ -221,10 +337,41 @@ pipelines:
 - If your repository is very large, the pipeline might time out
 - Consider using a custom pipeline with a longer timeout or breaking the migration into smaller parts
 
+## Important Limitations and Considerations
+
+### One-Way Synchronization
+
+- This solution provides one-way synchronization from Bitbucket to GitHub only
+- Any changes made directly to the GitHub repository will be overwritten during the next sync
+- Always make changes in the Bitbucket repository to ensure they are preserved
+
+### Large Repositories
+
+- Very large repositories might exceed Bitbucket Pipelines' default time or memory limits
+- For repositories larger than 1GB, consider:
+  - Using a custom runner with increased resources
+  - Breaking the initial migration into smaller parts
+  - Increasing the pipeline timeout settings in the YAML configuration
+
+### Branch Protection
+
+- If you have branch protection rules on GitHub, the token needs sufficient permissions
+- Ensure your GitHub token has the "bypass branch protections" permission
+- You might need to temporarily disable branch protection during initial migration
+
+### Private Dependencies
+
+- If your repository uses private dependencies, you'll need additional configuration:
+  - For private Git submodules, configure access tokens for those repositories
+  - For private package registries, add appropriate credentials to the pipeline
+
 ## Security Considerations
 
 - Use repository-specific App Passwords and tokens with minimal permissions
-- Store credentials securely as repository variables
+- Store credentials securely as repository variables (mark as "Secured")
+- For workspace repositories, ensure your personal account has appropriate permissions
+- Use the provided .env file approach for local token storage with secure permissions (chmod 600)
 - Regularly rotate your App Passwords and tokens
 - Consider using SSH keys instead of App Passwords/tokens for enhanced security
 - Remove credentials and keys when they are no longer needed
+- Consider using debug mode only when troubleshooting to avoid exposing sensitive information
