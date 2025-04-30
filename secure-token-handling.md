@@ -32,6 +32,8 @@ The recommended approach for local development and one-time migrations is to use
   BITBUCKET_APP_PASSWORD=your_bitbucket_app_password_here
   BITBUCKET_USERNAME=your_bitbucket_username_here
   BITBUCKET_REPO=your_bitbucket_repo_name_here
+  BITBUCKET_IS_WORKSPACE=true_or_false
+  BITBUCKET_AUTH_USERNAME=your_personal_bitbucket_username_here
 
   # GitHub credentials
   GITHUB_TOKEN=your_github_token_here
@@ -60,26 +62,19 @@ For ongoing synchronization, credentials are stored as repository variables in B
 The `setup-mirroring.sh` script:
 
 1. Checks for an existing `.env` file and loads it if present
-2. Prompts for any missing information
-3. Creates a new `.env` file with secure permissions if needed
-4. Uses masked input for credential entry
-
-### Python Script
-
-The `migrate.py` script:
-
-1. Attempts to load the `.env` file using python-dotenv
-2. Falls back to command-line arguments if provided
-3. Prompts for any missing information using masked input
-4. Can save configuration to a `.env` file with secure permissions
+2. Prompts for any missing information, including whether you're using a workspace repository
+3. For workspace repositories, prompts for your personal Bitbucket username for authentication
+4. Creates a new `.env` file with secure permissions if needed
+5. Uses masked input for credential entry
 
 ## Best Practices
 
 1. **Credential Permissions**:
 
    - Use repository-specific credentials with minimal required permissions
-   - For Bitbucket App Password: Only grant repository read access
+   - For Bitbucket App Password: Grant repository read/write access and Pipelines read/write/variables permissions
    - For GitHub token: Only grant repository write access
+   - For workspace repositories, ensure your personal account has appropriate permissions in the workspace
 
 2. **Credential Rotation**:
 

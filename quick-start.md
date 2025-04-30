@@ -15,57 +15,36 @@ git clone https://github.com/YOUR_USERNAME/mirroring-and-synchronizing.git
 cd mirroring-and-synchronizing
 ```
 
-## Step 2: Choose Your Setup Method
-
-### Option A: Interactive Bash Script (Recommended)
+## Step 2: Run the Setup Script
 
 ```bash
 ./setup-mirroring.sh
 ```
 
+For more detailed output, use:
+
+```bash
+./setup-mirroring.sh --verbose
+```
+
+For debugging, use:
+
+```bash
+./setup-mirroring.sh --debug
+```
+
 Follow the interactive prompts to:
 
-1. Enter your Bitbucket and GitHub information
-2. Create access tokens
-3. Migrate your repository
-4. Set up synchronization
+1. Specify whether you're using a Bitbucket workspace or personal username
+2. For workspace repositories, provide your personal username for authentication
+3. Enter your Bitbucket and GitHub repository details
+4. Create access tokens
+5. Migrate your repository
+6. Set up synchronization
 
 The script will create a secure `.env` file to store your configuration and tokens.
 
-### Option B: Python Script (For Automation)
-
-```bash
-# Install required dependencies
-pip install requests python-dotenv
-
-# Create a .env file (optional)
-cat > .env << EOF
-BITBUCKET_USERNAME=your_bitbucket_username
-BITBUCKET_REPO=your_bitbucket_repo
-BITBUCKET_APP_PASSWORD=your_bitbucket_app_password
-GITHUB_USERNAME=your_github_username
-GITHUB_REPO=your_github_repo
-GITHUB_TOKEN=your_github_token
-EOF
-
-# Set secure permissions
-chmod 600 .env
-
-# Run the migration script (will use .env if available)
-python migrate.py --save-env
-```
-
-You can also run without a pre-existing `.env` file:
-
-```bash
-python migrate.py --bb-user BITBUCKET_USERNAME --bb-repo BITBUCKET_REPO \
-                 --gh-user GITHUB_USERNAME --gh-repo GITHUB_REPO \
-                 --save-env
-```
-
-The script will prompt for any missing information and can save the configuration to a secure `.env` file.
-
-## Step 4: Commit the Pipeline Configuration to Bitbucket
+## Step 3: Commit the Pipeline Configuration to Bitbucket
 
 After the script completes, you'll need to commit the `bitbucket-pipelines.yml` file to your Bitbucket repository:
 
@@ -76,7 +55,7 @@ git commit -m "Add GitHub mirroring pipeline"
 git push
 ```
 
-## Step 5: Set Up Bitbucket Pipelines
+## Step 4: Set Up Bitbucket Pipelines
 
 1. **Enable Pipelines**:
 
@@ -88,11 +67,12 @@ git push
    - Go to Repository settings > Pipelines > Repository variables
    - Add the following variables:
      - `BITBUCKET_APP_PASSWORD`: Your Bitbucket App Password (mark as "Secured")
+     - `BITBUCKET_AUTH_USERNAME`: Your personal Bitbucket username (required for workspace repositories)
      - `GITHUB_TOKEN`: Your GitHub personal access token (mark as "Secured")
      - `GITHUB_REPO_OWNER`: Your GitHub username or organization name
      - `GITHUB_REPO_NAME`: Your GitHub repository name
 
-## Step 6: Verify the Setup
+## Step 5: Verify the Setup
 
 1. Make a small change to your Bitbucket repository
 2. Commit and push the change
